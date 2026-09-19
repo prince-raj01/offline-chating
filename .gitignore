@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Uploaded Files & Temporary Media
+uploads/*
+!uploads/.gitkeep
+
+# Local database (user data)
+data/*
+!data/.gitkeep
+
+# Tests & OS files
+test_chat.js
+.DS_Store
+Thumbs.db
+*.log

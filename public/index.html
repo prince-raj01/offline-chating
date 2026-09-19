@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="description" content="100% Offline Chat Web Application over Wi-Fi, Hotspot, and Bluetooth. No internet required.">
+  <title>OfflineChat - LAN, Hotspot & Bluetooth</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    
+    <!-- Mobile Overlay Backdrop -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="brand-details">
+            <h2>OfflineChat</h2>
+            <span class="offline-badge">
+              <span class="pulse-dot"></span> 100% Offline LAN
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile Card -->
+      <div class="user-card" id="userCard">
+        <div class="user-avatar" id="myAvatar" title="Click to pick avatar color">
+          <span id="myAvatarInitial">U</span>
+          <span class="avatar-status-badge online"></span>
+        </div>
+        <div class="user-info">
+          <div class="user-name-row">
+            <span class="user-name" id="myUsername">User</span>
+            <button class="edit-btn" id="editUsernameBtn" title="Change Nickname">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </button>
+          </div>
+          <span class="device-tag" id="myDeviceTag">Desktop • LAN</span>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tabLanMode" title="Wi-Fi & LAN Network">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          Wi-Fi / LAN
+        </button>
+        <button class="mode-tab" id="tabBtMode" title="Direct Web Bluetooth BLE">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline></svg>
+          Bluetooth
+        </button>
+      </div>
+
+      <!-- Channels & Rooms Panel -->
+      <div class="sidebar-section" id="lanChannelsSection">
+        <div class="section-title-row">
+          <span class="section-title">CHANNELS</span>
+          <button class="add-room-btn" id="openCreateRoomBtn" title="Create Channel">+</button>
+        </div>
+        <div class="rooms-list" id="roomsList">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="section-title-row mt-4">
+          <span class="section-title">ONLINE DEVICES (<span id="userCount">1</span>)</span>
+        </div>
+        <div class="users-list" id="onlineUsersList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Bluetooth Direct Controls (Shown when in Bluetooth tab) -->
+      <div class="sidebar-section hidden" id="btControlsSection">
+        <div class="bt-card">
+          <div class="bt-header">
+            <svg class="bt-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline></svg>
+            <div>
+              <h4>Web Bluetooth</h4>
+              <p class="bt-status-text" id="btStatusText">Checking support...</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm w-full mt-2" id="btScanBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Scan & Pair BLE Device
+          </button>
+          <div class="bt-device-info hidden" id="btDeviceInfo">
+            <span class="bt-connected-name" id="btConnectedName">None</span>
+            <button class="btn btn-danger btn-xs" id="btDisconnectBtn">Disconnect</button>
+          </div>
+        </div>
+
+        <div class="bt-pan-tip">
+          <strong>💡 Bluetooth Tethering:</strong>
+          <p>Pair your phone with this PC via Windows Bluetooth settings & turn on "Bluetooth Tethering" to chat with full media support without a router!</p>
+          <button class="btn btn-secondary btn-sm w-full mt-2" id="openBtGuideBtn">View Bluetooth Guide</button>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="btn-sidebar-action" id="openConnectModalBtn" title="Show QR Code for phones">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Connect Phone / QR
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CHAT PANEL -->
+    <main class="chat-panel">
+      <!-- Top Chat Header -->
+      <header class="chat-header">
+        <div class="header-left">
+          <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Toggle Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="active-room-meta">
+            <div class="active-room-name-row">
+              <span class="channel-prefix" id="activeRoomPrefix">#</span>
+              <h3 id="activeRoomTitle">general</h3>
+              <span class="badge badge-success" id="connectionBadge">LAN Active</span>
+            </div>
+            <p class="active-room-desc" id="activeRoomDesc">Main public channel for everyone</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-button" id="headerQrBtn" title="Scan QR Code to join on Mobile">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+          <button class="icon-button" id="themeToggleBtn" title="Toggle Theme">
+            <svg class="theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg class="theme-icon-light hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Scroll Area -->
+      <div class="messages-container" id="messagesContainer">
+        <div class="offline-welcome-banner">
+          <div class="welcome-icon">📡</div>
+          <h3>Offline Local Hub is Ready</h3>
+          <p>You can chat, send voice recordings, and transfer files at high LAN speed without an active internet connection.</p>
+          <div class="welcome-chips">
+            <span class="chip">🔒 Zero Cloud / 100% Private</span>
+            <span class="chip">🚀 Fast Local Wi-Fi & Hotspot</span>
+            <span class="chip">⚡ Bluetooth Supported</span>
+          </div>
+        </div>
+        <!-- Messages list is rendered here -->
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator-bar hidden" id="typingIndicator">
+        <span class="typing-dots">
+          <span></span><span></span><span></span>
+        </span>
+        <span id="typingText">Someone is typing...</span>
+      </div>
+
+      <!-- Voice Recording Active Bar -->
+      <div class="voice-record-bar hidden" id="voiceRecordBar">
+        <div class="voice-pulse-recording"></div>
+        <span class="recording-label">Recording Voice Note...</span>
+        <span class="recording-timer" id="recordingTimer">00:00</span>
+        <div class="record-actions">
+          <button class="btn-circle btn-cancel" id="cancelVoiceBtn" title="Cancel">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <button class="btn-circle btn-send-voice" id="sendVoiceBtn" title="Send Voice">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <footer class="chat-input-area" id="chatInputArea">
+        <input type="file" id="fileInput" class="hidden" multiple>
+
+        <!-- Drop file indicator overlay -->
+        <div class="drop-overlay hidden" id="dropOverlay">
+          <p>📥 Drop files here to share offline</p>
+        </div>
+
+        <button class="input-action-btn" id="attachFileBtn" title="Attach file or photo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+        </button>
+
+        <div class="input-wrapper">
+          <textarea id="messageInput" placeholder="Type an offline message... (Shift+Enter for new line)" rows="1"></textarea>
+          <button class="emoji-trigger-btn" id="emojiBtn" title="Add emoji">😀</button>
+          
+          <!-- Emoji Picker Popup -->
+          <div class="emoji-picker-dropdown hidden" id="emojiPicker">
+            <div class="emoji-grid" id="emojiGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <button class="input-action-btn" id="recordVoiceBtn" title="Hold/Click to record voice note">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+        </button>
+
+        <button class="send-message-btn" id="sendBtn" title="Send message">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </footer>
+    </main>
+  </div>
+
+  <!-- MODAL: Connect Devices / QR Code -->
+  <div class="modal-backdrop hidden" id="connectModal">
+    <div class="modal-content modal-qr">
+      <div class="modal-header">
+        <h3>Connect Any Phone or PC Offline</h3>
+        <button class="modal-close-btn" id="closeConnectModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-tabs">
+          <button class="qr-tab active" id="qrTabWifi">Wi-Fi & Hotspot</button>
+          <button class="qr-tab" id="qrTabBluetooth">Bluetooth PAN</button>
+          <button class="qr-tab" id="qrTabHelp">How it Works</button>
+        </div>
+
+        <!-- Wi-Fi / Hotspot QR Content -->
+        <div class="qr-panel" id="qrPanelWifi">
+          <div class="qr-image-wrapper">
+            <img id="primaryQrImage" alt="Network QR Code" src="" />
+            <div class="qr-loading" id="qrLoading">Loading QR Code...</div>
+          </div>
+          <p class="qr-hint">Scan this QR Code with any phone's camera on the same Wi-Fi or Mobile Hotspot</p>
+          <div class="network-link-box">
+            <span class="url-text" id="primaryNetworkUrl">http://...</span>
+            <button class="btn btn-secondary btn-sm" id="copyUrlBtn">Copy</button>
+          </div>
+          <div class="other-ips-list" id="otherIpsList">
+            <!-- Other interfaces listed here -->
+          </div>
+        </div>
+
+        <!-- Bluetooth PAN Content -->
+        <div class="qr-panel hidden" id="qrPanelBluetooth">
+          <div id="btPanContent">
+            <p class="bt-instructions">To chat completely offline without any Wi-Fi router:</p>
+            <ol class="step-list">
+              <li>Turn on <strong>Bluetooth</strong> on this computer and your mobile phone.</li>
+              <li>Pair both devices in Bluetooth settings.</li>
+              <li>On the phone or PC, enable <strong>Bluetooth Tethering</strong> (Personal Area Network).</li>
+              <li>Open the assigned Bluetooth IP in the phone's browser.</li>
+            </ol>
+            <div id="btPanList"></div>
+          </div>
+        </div>
+
+        <!-- Help Content -->
+        <div class="qr-panel hidden" id="qrPanelHelp">
+          <div class="help-box">
+            <h4>No Wi-Fi router available?</h4>
+            <p>1. Simply turn on your phone's <strong>Mobile Hotspot</strong> (you can keep Mobile Data turned OFF!).</p>
+            <p>2. Connect this PC/laptop to that hotspot.</p>
+            <p>3. Scan the QR code or visit the IP displayed above on any connected phone or laptop!</p>
+            <p>4. All devices can now exchange unlimited messages, large files, and voice notes at maximum wireless speed!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Nickname & Avatar Editor -->
+  <div class="modal-backdrop hidden" id="profileModal">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Change Profile</h3>
+        <button class="modal-close-btn" id="closeProfileModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Display Nickname</label>
+        <input type="text" id="usernameInput" class="form-input" maxlength="24" placeholder="Enter your name">
+        
+        <label class="form-label mt-3">Choose Avatar Color</label>
+        <div class="color-palette" id="colorPalette">
+          <!-- Populated by JS -->
+        </div>
+
+        <button class="btn btn-primary w-full mt-4" id="saveProfileBtn">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Create New Room -->
+  <div class="modal-backdrop hidden" id="createRoomModal">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Create New Channel</h3>
+        <button class="modal-close-btn" id="closeCreateRoomModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Channel Name</label>
+        <input type="text" id="newRoomName" class="form-input" maxlength="20" placeholder="e.g. project-team, games">
+        
+        <label class="form-label mt-3">Description (optional)</label>
+        <input type="text" id="newRoomDesc" class="form-input" maxlength="60" placeholder="What is this channel for?">
+
+        <button class="btn btn-primary w-full mt-4" id="confirmCreateRoomBtn">Create Channel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Image Preview Lightbox -->
+  <div class="modal-backdrop hidden" id="lightboxModal">
+    <div class="lightbox-container">
+      <button class="lightbox-close-btn" id="closeLightboxBtn">&times;</button>
+      <img id="lightboxImg" src="" alt="Expanded preview">
+      <div class="lightbox-actions">
+        <a id="lightboxDownloadBtn" href="" download class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Original
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Dependencies: Socket.io Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
